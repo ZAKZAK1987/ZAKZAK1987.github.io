@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Rapport de Visite de Chantier</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        :root {
+            --bg-primary: #f5f5f7;
+            --bg-secondary: #ffffff;
+            --text-primary: #1d1d1f;
+            --text-secondary: #86868b;
+            --accent: #0071e3;
+            --accent-hover: #0051d5;
+            --success: #34c759;
+            --warning: #ff9500;
+            --danger: #ff3b30;
+            --border: rgba(0, 0, 0, 0.08);
+            --shadow: rgba(0, 0, 0, 0.08);
+            --card-radius: 20px;
+            --button-radius: 12px;
+            --input-radius: 10px;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .app-header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+            margin: -20px -20px 30px -20px;
+            color: white;
+            border-radius: 0 0 var(--card-radius) var(--card-radius);
+        }
+        
+        .app-header h1 {
+            font-size: 36px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .app-header p {
+            font-size: 20px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: var(--bg-secondary);
+            border-radius: var(--card-radius);
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--input-radius);
+            font-size: 16px;
+            background: var(--bg-primary);
+            transition: all 0.2s ease;
+            font-family: inherit;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--button-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+            letter-spacing: -0.2px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            -webkit-appearance: none;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: scale(1.02);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+        
+        .btn-danger:hover {
+            background: #d70015;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 0 10px;
+        }
+        
+        .remarque-card {
+            background: var(--bg-secondary);
+            border-radius: var(--card-radius);
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 8px var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .remarque-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+        
+        .remarque-card:hover::before {
+            width: 6px;
+        }
+        
+        .remarque-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .remarque-number {
+            background: linear-gradient(135deg, var(--accent) 0%, #5856d6 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .task-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .photo-section {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .photo-box {
+            background: var(--bg-primary);
+            border: 2px dashed var(--border);
+            border-radius: var(--card-radius);
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        .photo-box:hover {
+            border-color: var(--accent);
+            background: rgba(0, 113, 227, 0.02);
+        }
+        
+        .photo-box.has-image {
+            padding: 0;
+            border-style: solid;
+            background: transparent;
+        }
+        
+        .photo-box img {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: calc(var(--card-radius) - 2px);
+        }
+        
+        .photo-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            display: block;
+            font-size: 16px;
+        }
+        
+        .photo-hint {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .export-section {
+            margin-top: 40px;
+            text-align: center;
+            padding: 40px;
+            background: linear-gradient(135deg, #007aff 0%, #5856d6 100%);
+            border-radius: var(--card-radius);
+            box-shadow: 0 4px 20px rgba(0, 113, 227, 0.3);
+        }
+        
+        .export-section h3 {
+            color: white;
+            margin-bottom: 16px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .export-section p {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 24px;
+            font-size: 16px;
+        }
+        
+        .btn-export {
+            background: white;
+            color: var(--accent);
+            font-size: 18px;
+            padding: 16px 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            font-weight: 700;
+        }
+        
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 113, 227, 0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card, .remarque-card {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @media (max-width: 768px) {
+            .app-header h1 {
+                font-size: 28px;
+            }
+            
+            .app-header p {
+                font-size: 16px;
+            }
+            
+            .info-grid, .task-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .photo-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: stretch;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-header">
+            <h1>📋 Rapport de Visite de Chantier</h1>
+            <p>Suivi des remarques</p>
+        </div>
+        
+        <div class="card">
+            <h2 class="section-title">
+                <span>🏗️</span>
+                Informations du Projet
+            </h2>
+            <div class="info-grid">
+                <div class="form-group">
+                    <label for="chantier">Nom du Chantier</label>
+                    <input type="text" id="chantier" placeholder="Ex: Construction Maison Dupont">
+                </div>
+                <div class="form-group">
+                    <label for="adresse">Adresse du Chantier</label>
+                    <input type="text" id="adresse" placeholder="Ex: 123 Rue de la Paix, 75000 Paris">
+                </div>
+                <div class="form-group">
+                    <label for="maitre-ouvrage">Maître d'Ouvrage</label>
+                    <input type="text" id="maitre-ouvrage" placeholder="Nom du client">
+                </div>
+                <div class="form-group">
+                    <label for="maitre-oeuvre">Maître d'Œuvre</label>
+                    <input type="text" id="maitre-oeuvre" placeholder="Votre nom/entreprise">
+                </div>
+                <div class="form-group">
+                    <label for="date-visite">Date de Visite</label>
+                    <input type="date" id="date-visite">
+                </div>
+            </div>
+        </div>
+        
+        <div class="remarques-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span>📝</span>
+                    Remarques et Tâches
+                </h2>
+                <button class="btn btn-primary" onclick="addRemarque()" type="button">
+                    <span>➕</span> Nouvelle Remarque
+                </button>
+            </div>
+            
+            <div id="remarques-container"></div>
+        </div>
+        
+        <div class="export-section">
+            <h3>Générer le Rapport PDF</h3>
+            <p>Créez un document professionnel avec toutes vos remarques et photos</p>
+            <button class="btn btn-export" onclick="generatePDF()" type="button">
+                <span id="export-text">📄 Créer le PDF</span>
+                <span class="loading hidden" id="loading-spinner"></span>
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // Variables globales
+        var remarqueCount = 0;
+        var remarques = {};
+        
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fix pour Safari iOS - date input
+            const dateInput = document.getElementById('date-visite');
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+            
+            // Ajouter une première remarque par défaut
+            addRemarque();
+            
+            // Désactiver le zoom sur double tap pour iOS
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+        });
+        
+        function addRemarque() {
+            remarqueCount++;
+            var container = document.getElementById('remarques-container');
+            
+            var remarqueCard = document.createElement('div');
+            remarqueCard.className = 'remarque-card';
+            remarqueCard.id = 'remarque-' + remarqueCount;
+            remarqueCard.style.animationDelay = '0.1s';
+            
+            var htmlContent = '<div class="remarque-header">' +
+                '<span class="remarque-number">Remarque #' + remarqueCount + '</span>' +
+                '<button class="btn btn-danger" onclick="removeRemarque(' + remarqueCount + ')">' +
+                '<span>🗑️</span> Supprimer' +
+                '</button>' +
+                '</div>' +
+                
+                '<div class="form-group">' +
+                '<label>Description de la remarque</label>' +
+                '<textarea id="desc-' + remarqueCount + '" rows="3" placeholder="Décrivez en détail votre remarque..."></textarea>' +
+                '</div>' +
+                
+                '<div class="task-info">' +
+                '<div class="form-group">' +
+                '<label>Localisation</label>' +
+                '<input type="text" id="localisation-' + remarqueCount + '" placeholder="Ex: RDC - Cuisine">' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label>Entreprise responsable</label>' +
+                '<input type="text" id="entreprise-' + remarqueCount + '" placeholder="Ex: Entreprise Martin">' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label>Tâche à réaliser</label>' +
+                '<input type="text" id="tache-' + remarqueCount + '" placeholder="Ex: Réparer la fissure">' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label>À faire pour le</label>' +
+                '<input type="date" id="date-limite-' + remarqueCount + '">' +
+                '</div>' +
+                '<div class="form-group">' +
+                '<label>Fait le</label>' +
+                '<input type="date" id="date-fait-' + remarqueCount + '">' +
+                '</div>' +
+                '</div>' +
+                
+                '<div class="photo-section">' +
+                '<div class="photo-box" onclick="selectPhoto(' + remarqueCount + ', 1)">' +
+                '<span class="photo-label">📸 Photo 1</span>' +
+                '<div id="photo-1-' + remarqueCount + '">' +
+                '<p class="photo-hint">Cliquez pour ajouter</p>' +
+                '<p class="photo-hint" style="font-size: 12px; margin-top: 5px;">ou prendre une photo</p>' +
+                '</div>' +
+                '<input type="file" id="input-photo-1-' + remarqueCount + '" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(' + remarqueCount + ', 1, event)">' +
+                '</div>' +
+                
+                '<div class="photo-box" onclick="selectPhoto(' + remarqueCount + ', 2)">' +
+                '<span class="photo-label">📸 Photo 2</span>' +
+                '<div id="photo-2-' + remarqueCount + '">' +
+                '<p class="photo-hint">Cliquez pour ajouter</p>' +
+                '<p class="photo-hint" style="font-size: 12px; margin-top: 5px;">ou prendre une photo</p>' +
+                '</div>' +
+                '<input type="file" id="input-photo-2-' + remarqueCount + '" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(' + remarqueCount + ', 2, event)">' +
+                '</div>' +
+                '</div>';
+            
+            remarqueCard.innerHTML = htmlContent;
+            container.appendChild(remarqueCard);
+            
+            // Initialiser l'objet remarque
+            remarques[remarqueCount] = {
+                id: remarqueCount,
+                photo1: null,
+                photo2: null
+            };
+        }
+        
+        function removeRemarque(id) {
+            var element = document.getElementById('remarque-' + id);
+            if (element && confirm('Êtes-vous sûr de vouloir supprimer cette remarque ?')) {
+                element.style.animation = 'fadeIn 0.3s ease reverse';
+                setTimeout(function() {
+                    element.remove();
+                    delete remarques[id];
+                }, 300);
+            }
+        }
+        
+        function selectPhoto(id, photoNum) {
+            document.getElementById('input-photo-' + photoNum + '-' + id).click();
+        }
+        
+        function compressImage(dataUrl, maxWidth, quality) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    let width = img.width;
+                    let height = img.height;
+                    
+                    // Rotation automatique pour les photos prises sur iPhone
+                    const orientation = 1; // Par défaut
+                    
+                    if (width > maxWidth) {
+                        height = (maxWidth / width) * height;
+                        width = maxWidth;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Amélioration de la qualité de rendu
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Compression avec qualité réduite
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+                    resolve(compressedDataUrl);
+                };
+                img.src = dataUrl;
+            });
+        }
+        
+        async function handlePhotoUpload(id, photoNum, event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                // Afficher un indicateur de chargement
+                const photoDiv = document.getElementById(`photo-${photoNum}-${id}`);
+                photoDiv.innerHTML = '<div class="loading"></div><p style="margin-top: 10px;">Compression en cours...</p>';
+                
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        // Compresser l'image
+                        const compressedImage = await compressImage(e.target.result, 800, 0.7);
+                        
+                        photoDiv.innerHTML = `<img src="${compressedImage}" alt="Photo ${photoNum}">`;
+                        photoDiv.parentElement.classList.add('has-image');
+                        
+                        // Sauvegarder la photo compressée
+                        remarques[id][`photo${photoNum}`] = compressedImage;
+                    } catch (error) {
+                        console.error('Erreur lors de la compression:', error);
+                        photoDiv.innerHTML = '<p style="color: var(--danger);">Erreur lors du chargement</p>';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+        
+        function generatePDF() {
+            var exportBtn = document.querySelector('.btn-export');
+            var exportText = document.getElementById('export-text');
+            var loadingSpinner = document.getElementById('loading-spinner');
+            
+            // Afficher le chargement
+            exportText.textContent = 'Génération en cours...';
+            loadingSpinner.classList.remove('hidden');
+            exportBtn.disabled = true;
+            
+            try {
+                var jsPDF = window.jspdf.jsPDF;
+                var pdf = new jsPDF('p', 'mm', 'a4');
+                
+                // Couleurs Apple
+                var primaryColor = [0, 122, 255];
+                var textColor = [29, 29, 31];
+                var grayColor = [134, 134, 139];
+                
+                // En-tête du PDF
+                pdf.setFillColor(...primaryColor);
+                pdf.rect(0, 0, 210, 45, 'F');
+                
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(28);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Rapport de Visite de Chantier', 105, 22, { align: 'center' });
+                pdf.setFontSize(14);
+                pdf.setFont(undefined, 'normal');
+                pdf.text('Suivi des remarques', 105, 33, { align: 'center' });
+                
+                // Informations du projet
+                pdf.setTextColor(...textColor);
+                pdf.setFontSize(18);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Informations du Projet', 20, 60);
+                
+                // Ligne de séparation
+                pdf.setDrawColor(...grayColor);
+                pdf.setLineWidth(0.5);
+                pdf.line(20, 63, 190, 63);
+                
+                // Données du projet
+                pdf.setFontSize(11);
+                let yPos = 75;
+                
+                const projectInfo = [
+                    { label: 'Chantier', value: document.getElementById('chantier').value || 'Non renseigné' },
+                    { label: 'Adresse', value: document.getElementById('adresse').value || 'Non renseigné' },
+                    { label: 'Maître d\'ouvrage', value: document.getElementById('maitre-ouvrage').value || 'Non renseigné' },
+                    { label: 'Maître d\'œuvre', value: document.getElementById('maitre-oeuvre').value || 'Non renseigné' },
+                    { label: 'Date de visite', value: formatDate(document.getElementById('date-visite').value) || 'Non renseigné' }
+                ];
+                
+                projectInfo.forEach(info => {
+                    pdf.setTextColor(...grayColor);
+                    pdf.setFont(undefined, 'normal');
+                    pdf.text(info.label.toUpperCase(), 20, yPos);
+                    pdf.setTextColor(...textColor);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text(info.value, 70, yPos);
+                    yPos += 8;
+                });
+                
+                // Remarques
+                yPos += 12;
+                pdf.setTextColor(...textColor);
+                pdf.setFontSize(18);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Remarques et Tâches', 20, yPos);
+                
+                pdf.setDrawColor(...grayColor);
+                pdf.line(20, yPos + 3, 190, yPos + 3);
+                
+                yPos += 15;
+                
+                // Parcourir toutes les remarques
+                for (let i = 1; i <= remarqueCount; i++) {
+                    const remCard = document.getElementById(`remarque-${i}`);
+                    if (!remCard) continue;
+                    
+                    // Calculer l'espace nécessaire pour cette remarque
+                    let espaceNecessaire = 12; // En-tête de remarque
+                    
+                    // Description
+                    const description = document.getElementById(`desc-${i}`).value || 'Aucune description';
+                    const descLines = pdf.splitTextToSize(description, 170);
+                    espaceNecessaire += descLines.length * 5 + 5;
+                    
+                    // Informations de la tâche (5 lignes max x 6)
+                    espaceNecessaire += 30;
+                    
+                    // Photos si présentes
+                    if (remarques[i] && (remarques[i].photo1 || remarques[i].photo2)) {
+                        espaceNecessaire += 80; // 5 + 60 (hauteur photo) + 10 + 5
+                    }
+                    
+                    espaceNecessaire += 10; // Marge en bas
+                    
+                    // Vérifier si la remarque complète rentre sur la page actuelle
+                    if (yPos + espaceNecessaire > 270) {
+                        pdf.addPage();
+                        yPos = 20;
+                    }
+                    
+                    // Numéro de remarque
+                    pdf.setFillColor(...primaryColor);
+                    pdf.roundedRect(20, yPos - 7, 170, 10, 5, 5, 'F');
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.setFontSize(12);
+                    pdf.setFont(undefined, 'bold');
+                    pdf.text(`Remarque #${i}`, 25, yPos);
+                    
+                    yPos += 12;
+                    
+                    // Description
+                    pdf.setTextColor(...textColor);
+                    pdf.setFontSize(10);
+                    pdf.setFont(undefined, 'normal');
+                    pdf.text(descLines, 20, yPos);
+                    yPos += descLines.length * 5 + 5;
+                    
+                    // Informations de la tâche
+                    const taskInfo = [
+                        { label: 'Localisation', value: document.getElementById(`localisation-${i}`).value || 'Non renseigné' },
+                        { label: 'Entreprise', value: document.getElementById(`entreprise-${i}`).value || 'Non renseigné' },
+                        { label: 'Tâche', value: document.getElementById(`tache-${i}`).value || 'Non renseigné' },
+                        { label: 'À faire pour le', value: formatDate(document.getElementById(`date-limite-${i}`).value) || 'Non renseigné' }
+                    ];
+                    
+                    const dateFait = document.getElementById(`date-fait-${i}`).value;
+                    if (dateFait) {
+                        taskInfo.push({ label: 'Fait le', value: formatDate(dateFait) + ' ✓' });
+                    }
+                    
+                    taskInfo.forEach(info => {
+                        pdf.setTextColor(...grayColor);
+                        pdf.setFont(undefined, 'normal');
+                        pdf.text(info.label, 25, yPos);
+                        pdf.setTextColor(...textColor);
+                        pdf.setFont(undefined, 'bold');
+                        pdf.text(info.value, 60, yPos);
+                        yPos += 6;
+                    });
+                    
+                    // Photos
+                    if (remarques[i] && (remarques[i].photo1 || remarques[i].photo2)) {
+                        yPos += 5;
+                        
+                        pdf.setTextColor(...grayColor);
+                        pdf.setFont(undefined, 'normal');
+                        pdf.text('PHOTOS', 25, yPos);
+                        yPos += 5;
+                        
+                        let xPos = 25;
+                        const imgWidth = 80;
+                        const imgHeight = 60;
+                        
+                        // Photo 1
+                        if (remarques[i].photo1) {
+                            try {
+                                pdf.setDrawColor(...grayColor);
+                                pdf.roundedRect(xPos - 1, yPos - 1, imgWidth + 2, imgHeight + 2, 3, 3);
+                                pdf.addImage(remarques[i].photo1, 'JPEG', xPos, yPos, imgWidth, imgHeight);
+                                xPos += imgWidth + 10;
+                            } catch (e) {
+                                console.error('Erreur ajout photo 1:', e);
+                            }
+                        }
+                        
+                        // Photo 2
+                        if (remarques[i].photo2) {
+                            try {
+                                pdf.setDrawColor(...grayColor);
+                                pdf.roundedRect(xPos - 1, yPos - 1, imgWidth + 2, imgHeight + 2, 3, 3);
+                                pdf.addImage(remarques[i].photo2, 'JPEG', xPos, yPos, imgWidth, imgHeight);
+                            } catch (e) {
+                                console.error('Erreur ajout photo 2:', e);
+                            }
+                        }
+                        
+                        yPos += imgHeight + 10;
+                    }
+                    
+                    yPos += 10;
+                }
+                
+                // Pied de page sur toutes les pages
+                const pageCount = pdf.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    pdf.setPage(i);
+                    pdf.setFillColor(...primaryColor);
+                    pdf.rect(0, 285, 210, 12, 'F');
+                    pdf.setTextColor(255, 255, 255);
+                    pdf.setFontSize(10);
+                    const dateHeure = `${new Date().toLocaleDateString('fr-FR')} • ${new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}`;
+                    pdf.text(dateHeure, 105, 291, { align: 'center' });
+                    pdf.text(`Page ${i} sur ${pageCount}`, 105, 295, { align: 'center' });
+                }
+                
+                // Sauvegarder le PDF
+                var fileName = 'Rapport_Chantier_' + (document.getElementById('chantier').value || 'Sans_nom') + '_' + new Date().toLocaleDateString('fr-FR').replace(/\//g, '-') + '.pdf';
+                pdf.save(fileName);
+                
+                // Réinitialiser le bouton
+                exportText.textContent = '📄 Créer le PDF';
+                loadingSpinner.classList.add('hidden');
+                exportBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Erreur lors de la génération du PDF:', error);
+                alert('Une erreur est survenue lors de la génération du PDF. Veuillez réessayer.');
+                
+                // Réinitialiser le bouton
+                exportText.textContent = '📄 Créer le PDF';
+                loadingSpinner.classList.add('hidden');
+                exportBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
